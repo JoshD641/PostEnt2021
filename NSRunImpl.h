@@ -5,9 +5,11 @@ namespace PostEnt2021
 {
 
 template<typename Params, typename Data>
-NSRun<Params, Data>::NSRun(Tools::RNG& rng)
+NSRun<Params, Data>::NSRun(int num_particles, Tools::RNG& rng)
 :truth(rng)
 ,data(truth, rng)
+,ns_particles(num_particles, truth)
+,distances_from_truth(num_particles, 0.0)
 {
 
 }

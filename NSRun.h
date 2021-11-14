@@ -11,8 +11,12 @@ class NSRun
         Params truth;
         Data data;
 
+        // Nested Sampling particles
+        std::vector<Params> ns_particles;
+        std::vector<double> distances_from_truth;
+
     public:
-        NSRun(Tools::RNG& rng);
+        NSRun(int num_particles, Tools::RNG& rng);
 
 };
 
