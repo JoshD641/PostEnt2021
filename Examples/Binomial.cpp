@@ -22,6 +22,11 @@ double BinomialParams::perturb(Tools::RNG& rng)
     return 0.0;
 }
 
+double BinomialParams::distance_from(const BinomialParams& other) const
+{
+    return std::abs(other.theta - theta);
+}
+
 BinomialData::BinomialData(const BinomialParams& params, Tools::RNG& rng)
 {
     x = 0;

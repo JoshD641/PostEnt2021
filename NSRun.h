@@ -18,7 +18,7 @@ class NSRun
 
     public:
         NSRun(int num_particles, Tools::RNG& rng);
-
+        void explore_posterior(int mcmc_steps_per_particle, Tools::RNG& rng);
 };
 
 } // namespace

@@ -22,6 +22,9 @@ class BinomialParams
         // Perturb in the usual way
         double perturb(Tools::RNG& rng);
 
+        // Distance from another particle
+        double distance_from(const BinomialParams& other) const;
+
         friend class BinomialData;
 
 };
