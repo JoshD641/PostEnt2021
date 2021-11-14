@@ -11,8 +11,9 @@ class NSRun
         Params truth;
         Data data;
 
-        // Nested Sampling particles
+        // Nested Sampling particles and associated quantities
         std::vector<Params> ns_particles;
+        std::vector<double> log_likelihoods;
         std::vector<double> distances_from_truth;
 
     public:

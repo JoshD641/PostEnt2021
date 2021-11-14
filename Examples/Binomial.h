@@ -38,6 +38,9 @@ class BinomialData
         // Generate given the parameters
         BinomialData(const BinomialParams& params, Tools::RNG& rng);
 
+        // Evaluate log likelihood
+        double log_likelihood(const BinomialParams& params) const;
+
 };
 
 
