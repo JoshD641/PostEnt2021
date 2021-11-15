@@ -81,7 +81,7 @@ void NSRun<Params, Data>::do_iteration(Tools::RNG& rng)
 
     // Open output file
     auto mode = std::ios::out;
-    if(iteration > 1)
+    if(ns_run_id > 1 || iteration > 1)
         mode = mode | std::ios::app;
     std::fstream fout("output.csv", mode);
 
