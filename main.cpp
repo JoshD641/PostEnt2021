@@ -8,8 +8,12 @@ using namespace PostEnt2021::Examples;
 int main()
 {
     Tools::RNG rng;
-    NSRun<BinomialParams, BinomialData> ns_run(100, rng);
-    ns_run.explore_posterior(1000, rng);
+
+    for(int ns_run_id=1; ns_run_id <= 100; ++ns_run_id)
+    {
+        NSRun<BinomialParams, BinomialData> ns_run(ns_run_id, 100, rng);
+        ns_run.execute(30.0, rng);
+    }
 
     return 0;
 }
