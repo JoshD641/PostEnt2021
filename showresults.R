@@ -8,7 +8,8 @@ output = read.csv("output.csv")
 subset = output[output$distance > radius, ]
 result = tapply(subset$depth, subset$ns_run_id, max)
 depth = mean(result)
-h = -log_mass - log(nball_volume)
+h = -depth - log(nball_volume)
+sem = sd(result) / sqrt(length(result))
 
-cat("depth =", depth, "\n")
-cat("H(theta | d) =", h, "\n")
+cat("depth =", depth, "nats.\n")
+cat("H(theta | d) =", h, "+-", sem, "nats.\n")
