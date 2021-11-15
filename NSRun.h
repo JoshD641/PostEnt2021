@@ -13,7 +13,7 @@ class NSRun
         Data data;
 
         // Nested Sampling particles and associated quantities
-        std::vector<Params> ns_particles;
+        std::vector<Params> particles;
         std::vector<double> log_likelihoods;
         std::vector<double> distances_from_truth;
 
@@ -24,18 +24,22 @@ class NSRun
         int iteration;
 
         // Explore for a single particle
-        int explore_posterior(int which_particle, int mcmc_steps, Tools::RNG& rng);
+        int explore_posterior(int which_particle,
+                              Tools::RNG& rng);
 
-        // Explore for all particles
-        void explore_posterior(int mcmc_steps_per_particle, Tools::RNG& rng);
+        // Explore for all particles (to move away from truth initially)
+        void explore_posterior(Tools::RNG& rng);
 
         // Do one NS iteration
         void do_iteration(Tools::RNG& rng);
 
     public:
-        NSRun(int _ns_run_id, int num_particles, Tools::RNG& rng);
-        void execute(double depth, Tools::RNG& rng);
+        NSRun(int _ns_run_id, Tools::RNG& rng);
+        void execute(Tools::RNG& rng);
 };
+
+// Entry point for multiple NS Runs
+void launch(Tools::RNG& rng);
 
 } // namespace
 

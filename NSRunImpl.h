@@ -1,19 +1,20 @@
 #ifndef PostEnt2021_NSRunImpl_h
 #define PostEnt2021_NSRunImpl_h
 
+#include "Constants.h"
 #include <fstream>
 
 namespace PostEnt2021
 {
 
 template<typename Params, typename Data>
-NSRun<Params, Data>::NSRun(int _ns_run_id, int num_particles, Tools::RNG& rng)
+NSRun<Params, Data>::NSRun(int _ns_run_id, Tools::RNG& rng)
 :ns_run_id(_ns_run_id)
 ,truth(rng)
 ,data(truth, rng)
-,ns_particles(num_particles, truth)
-,log_likelihoods(num_particles, data.log_likelihood(truth))
-,distances_from_truth(num_particles, 0.0)
+,particles(Constants::num_particles, truth)
+,log_likelihoods(Constants::num_particles, data.log_likelihood(truth))
+,distances_from_truth(Constants::num_particles, 0.0)
 ,threshold(1E300)
 ,iteration(0)
 {
@@ -23,14 +24,13 @@ NSRun<Params, Data>::NSRun(int _ns_run_id, int num_particles, Tools::RNG& rng)
 
 template<typename Params, typename Data>
 int NSRun<Params, Data>::explore_posterior(int which_particle,
-                                           int mcmc_steps,
                                            Tools::RNG& rng)
 {
     const int& i = which_particle;
     int accepted = 0;
-    for(int j=0; j<mcmc_steps; ++j)
+    for(int j=0; j<Constants::mcmc_steps_per_particle; ++j)
     {
-        Params proposal = ns_particles[i];
+        Params proposal = particles[i];
         double logh = proposal.perturb(rng);
         if(rng.rand() <= exp(logh))
         {
@@ -39,7 +39,7 @@ int NSRun<Params, Data>::explore_posterior(int which_particle,
             if(rng.rand() <= exp(proposal_logl - log_likelihoods[i])
                 && proposal_dist < threshold)
             {
-                ns_particles[i] = proposal;
+                particles[i] = proposal;
                 log_likelihoods[i] = proposal_logl;
                 distances_from_truth[i] = proposal_dist;
                 ++accepted;
@@ -50,19 +50,19 @@ int NSRun<Params, Data>::explore_posterior(int which_particle,
 }
 
 template<typename Params, typename Data>
-void NSRun<Params, Data>::explore_posterior(int mcmc_steps_per_particle,
-                                            Tools::RNG& rng)
+void NSRun<Params, Data>::explore_posterior(Tools::RNG& rng)
 {
-    std::cout << "Exploring for " << ns_particles.size() << " particles...";
-    std::cout << std::flush;
+    std::cout << "Initial exploration..." << std::flush;
 
     int accepted = 0;
-    for(size_t i=0; i<ns_particles.size(); ++i)
-        accepted += explore_posterior(i, mcmc_steps_per_particle, rng);
+    static constexpr int factor = 10;
+    for(size_t i=0; i<particles.size(); ++i)
+        for(int j=0; j<factor; ++j)
+            accepted += explore_posterior(i, rng);
 
     std::cout << "done. Acceptance rate = " << accepted << '/';
-    std::cout << (mcmc_steps_per_particle*ns_particles.size()) << '.';
-    std::cout << std::endl;
+    std::cout << factor*Constants::num_particles*Constants::mcmc_steps_per_particle << '.';
+    std::cout << '\n' << std::endl;
 }
 
 template<typename Params, typename Data>
@@ -72,7 +72,7 @@ void NSRun<Params, Data>::do_iteration(Tools::RNG& rng)
 
     // Find worst particle
     int worst = 0;
-    for(size_t i=1; i<ns_particles.size(); ++i)
+    for(size_t i=1; i<particles.size(); ++i)
     {
         if(distances_from_truth[i] > distances_from_truth[worst])
             worst = i;
@@ -91,43 +91,57 @@ void NSRun<Params, Data>::do_iteration(Tools::RNG& rng)
 
     // Output line
     fout << ns_run_id << ',';
-    fout << iteration << ',' << (double)(iteration)/ns_particles.size() << ',';
+    fout << iteration << ',' << (double)(iteration)/particles.size() << ',';
     fout << distances_from_truth[worst] << std::endl;
     fout.close();
 
     std::cout << "(ns_run_id, iteration, depth, distance) = ";
     std::cout << '(' << ns_run_id << ", ";
-    std::cout << iteration << ", " << (double)(iteration)/ns_particles.size() << ", ";
+    std::cout << iteration << ", " << (double)(iteration)/particles.size() << ", ";
     std::cout << distances_from_truth[worst] << ")." << std::endl;
 
     // Replace worst particle
     int copy;
     while(true)
     {
-        copy = rng.rand_int(ns_particles.size());
-        if(ns_particles.size() == 1 || copy != worst)
+        copy = rng.rand_int(particles.size());
+        if(particles.size() == 1 || copy != worst)
             break;
     }
 
-    ns_particles[worst] = ns_particles[copy];
+    particles[worst] = particles[copy];
     log_likelihoods[worst] = log_likelihoods[copy];
     distances_from_truth[worst] = distances_from_truth[copy];
 
     // Refresh with MCMC
-    explore_posterior(worst, 1000, rng);
+    std::cout << "Generating new particle..." << std::flush;
+    int accepted = explore_posterior(worst, rng);
+    std::cout << "done. Acceptance rate = " << accepted << '/';
+    std::cout << Constants::mcmc_steps_per_particle << ".\n";
+    std::cout << std::endl;
 }
 
 
 template<typename Params, typename Data>
-void NSRun<Params, Data>::execute(double depth, Tools::RNG& rng)
+void NSRun<Params, Data>::execute(Tools::RNG& rng)
 {
-    explore_posterior(10000, rng);
+    explore_posterior(rng);
 
-    int iterations = depth*ns_particles.size();
+    int iterations = Constants::target_depth_nats*Constants::num_particles;
     for(int i=0; i<iterations; ++i)
         do_iteration(rng);
 }
 
+
+template<typename Params, typename Data>
+void launch(Tools::RNG& rng)
+{
+    for(int i=0; i<Constants::total_runs; ++i)
+    {
+        NSRun<Params, Data> ns_run(i+1, rng);
+        ns_run.execute(rng);
+    }
+}
 
 } // namespace
 
