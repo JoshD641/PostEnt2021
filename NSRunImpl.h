@@ -21,23 +21,34 @@ NSRun<Params, Data>::NSRun(int _ns_run_id, Tools::RNG& rng)
 
 }
 
-
+//JD - a few small comments here explaining the logic would help a lot when referring back to the paper to understand what it's doing, a bit of positive reinforcement for the reader that they're working through the logic correctly
+//Jd - I've tried to add my own - keen to be corrected!
 template<typename Params, typename Data>
 int NSRun<Params, Data>::explore_posterior(int which_particle,
                                            Tools::RNG& rng)
 {
     const int& i = which_particle;
     int accepted = 0;
-    for(int j=0; j<Constants::mcmc_steps_per_particle; ++j)
+    for(int j=0; j<Constants::mcmc_steps_per_particle; ++j) //JD - begin MCMC iterations
     {
         Params proposal = particles[i];
-        double logh = proposal.perturb(rng);
-        if(rng.rand() <= exp(logh))
+        double logh = proposal.perturb(rng); //JD - generate new particle
+        
+		if(rng.rand() <= exp(logh)) //JD - weight acceptance fraction by prior likelihood
         {
             double proposal_logl = data.log_likelihood(proposal);
             double proposal_dist = proposal.distance_from(truth);
-            if(rng.rand() <= exp(proposal_logl - log_likelihoods[i])
-                && proposal_dist < threshold)
+			
+			//JD - there's a lot of logic condensed in the check below - I'd seperate the conditions below out into several informatively named bools, something like:
+			
+			//bool acceptProposalMCMC = rng.rand() <= exp(proposal_logl - log_likelihoods[i]); //JD - Accept proposed particle 100% of the time if it is more likely than previous particle, else accept it with probability equal to the ratio of new/old likelihoods.
+			//bool acceptProposalThreshold = proposal_dist < threshold; //JD - Do not accept if particle is outside the distance threshold.
+			
+			//if(acceptProposalMCMC && acceptProposalThreshold){ ...			
+			
+			
+            if(rng.rand() <= exp(proposal_logl - log_likelihoods[i]) 
+                && proposal_dist < threshold)  
             {
                 particles[i] = proposal;
                 log_likelihoods[i] = proposal_logl;

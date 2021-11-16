@@ -9,6 +9,8 @@ namespace PostEnt2021
 namespace Examples
 {
 
+
+//JD - my comments below are treating this class as if it's the reference implementation of an experiment, that people are meant to use as the learning example.
 class BinomialParams
 {
     private:
@@ -19,6 +21,7 @@ class BinomialParams
         // Generate from the prior
         BinomialParams(Tools::RNG& rng);
 
+		//JD - this comment doesn't explain more than the reader already knows. What does the function edit when called, and what is the meaning of the return value?
         // Perturb in the usual way
         double perturb(Tools::RNG& rng);
 
@@ -34,7 +37,7 @@ class BinomialData
 {
     private:
         static constexpr int N = 100;
-        int x;
+        int x; //JD - This variable name could be more descriptive
 
     public:
 

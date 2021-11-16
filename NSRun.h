@@ -9,7 +9,7 @@ class NSRun
 {
     private:
         const int ns_run_id;
-        Params truth;
+        Params truth;//JD - I don't understand the reasoning behind calling this variable truth from reading the code, so it probably needs an explanation
         Data data;
 
         // Nested Sampling particles and associated quantities
@@ -18,15 +18,18 @@ class NSRun
         std::vector<double> distances_from_truth;
 
         // Distance threshold for NS
-        double threshold;
+        double threshold; 
 
         // Iteration
         int iteration;
 
+		//JD - this function name (and comment) explains what the function is about, but not what it achieves - e.g what does the int that is returned mean?
         // Explore for a single particle
         int explore_posterior(int which_particle,
                               Tools::RNG& rng);
 
+		//JD - similarly to above, what does calling this function achieve? It's hard to tell from the name.
+		//JD - Also, overloading the name "explore_posterior" like this suggests to me that this function achieves the same effect as the function above (on/with different inputs), which is not the case.
         // Explore for all particles (to move away from truth initially)
         void explore_posterior(Tools::RNG& rng);
 
